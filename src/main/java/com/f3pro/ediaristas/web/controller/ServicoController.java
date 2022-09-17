@@ -1,8 +1,10 @@
 package com.f3pro.ediaristas.web.controller;
 
 import com.f3pro.ediaristas.core.enums.Icone;
+import com.f3pro.ediaristas.web.dtos.FlashMessage;
 import com.f3pro.ediaristas.web.dtos.ServicoForm;
 import com.f3pro.ediaristas.web.mappers.WebServiceMapper;
+import com.f3pro.ediaristas.web.services.WebServicoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.f3pro.ediaristas.core.repositories.ServicoRepository;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 
@@ -18,15 +21,13 @@ import javax.validation.Valid;
 public class ServicoController {
 
     @Autowired
-    private ServicoRepository repository;
-
-    @Autowired
-    private WebServiceMapper mapper;
+    private WebServicoService service;
 
     @GetMapping
     public ModelAndView buscarTodos() {
         var modelAndView = new ModelAndView("admin/servico/lista");
-        modelAndView.addObject("servicos", repository.findAll());
+
+        modelAndView.addObject("servicos", service.buscarTodos());
 
         return modelAndView;
     }
@@ -34,48 +35,51 @@ public class ServicoController {
     @GetMapping("/cadastrar")
     public ModelAndView cadastrar() {
         var modelAndView = new ModelAndView("admin/servico/form");
+
         modelAndView.addObject("form", new ServicoForm());
+
         return modelAndView;
     }
 
     @PostMapping("/cadastrar")
-    public String cadastrar(@Valid @ModelAttribute("form") ServicoForm form, BindingResult result) {
+    public String cadastrar(@Valid @ModelAttribute("form") ServicoForm form, BindingResult result, RedirectAttributes attrs) {
         if (result.hasErrors()) {
             return "admin/servico/form";
         }
 
-        var servico = mapper.toModel(form);
-        repository.save(servico);
+        service.cadastrar(form);
+        attrs.addFlashAttribute("alert", new FlashMessage("alert-success", "Serviço cadastrado com sucesso!"));
+
         return "redirect:/admin/servicos";
     }
 
     @GetMapping("/{id}/editar")
     public ModelAndView editar(@PathVariable Long id) {
         var modelAndView = new ModelAndView("admin/servico/form");
-        var servico = repository.getById(id);
-        var form = mapper.toForm(servico);
-        modelAndView.addObject("form", form);
+
+        modelAndView.addObject("form", service.buscarPorId(id));
+
         return modelAndView;
     }
 
     @PostMapping("/{id}/editar")
-    public String editar(@PathVariable long id, @Valid @ModelAttribute("form") ServicoForm form, BindingResult result) {
+    public String editar(@PathVariable Long id, @Valid @ModelAttribute("form") ServicoForm form, BindingResult result, RedirectAttributes attrs) {
         if (result.hasErrors()) {
             return "admin/servico/form";
         }
 
+        service.editar(form, id);
+        attrs.addFlashAttribute("alert", new FlashMessage("alert-success", "Serviço editado com sucesso!"));
 
-        var servico = mapper.toModel(form);
-        servico.setId(id);
-        repository.save(servico);
         return "redirect:/admin/servicos";
     }
 
     @GetMapping("/{id}/excluir")
-    public String exluir(@PathVariable Long id) {
-        repository.deleteById(id);
-        return "redirect:/admin/servicos";
+    public String excluir(@PathVariable Long id, RedirectAttributes attrs) {
+        service.excluirPorId(id);
+        attrs.addFlashAttribute("alert", new FlashMessage("alert-success", "Serviço excluído com sucesso!"));
 
+        return "redirect:/admin/servicos";
     }
 
     @ModelAttribute("icones")
