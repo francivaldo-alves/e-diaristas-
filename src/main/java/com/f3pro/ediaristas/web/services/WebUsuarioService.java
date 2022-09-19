@@ -1,6 +1,7 @@
 package com.f3pro.ediaristas.web.services;
 
 import com.f3pro.ediaristas.core.enums.TipoUsuario;
+import com.f3pro.ediaristas.core.exceptions.UsuarioNaoEcontradoException;
 import com.f3pro.ediaristas.core.models.Usuario;
 import com.f3pro.ediaristas.core.repositories.UsuarioRepository;
 import com.f3pro.ediaristas.web.dtos.UsuarioCadastroForm;
@@ -28,5 +29,20 @@ public class WebUsuarioService {
         model.setTipoUsuario(TipoUsuario.ADMIN);
         return repository.save(model);
     }
+
+    public Usuario buscarPorId(Long id) {
+
+        var mensagem = String.format("Servico com ID %d não encontrado", id);
+    return repository.findById(id)
+                .orElseThrow(() -> new UsuarioNaoEcontradoException(mensagem));
+
+
+    }
+
+    public void excluirPorId(Long id){
+        var usuario = buscarPorId(id);
+        repository.delete(usuario);
+    }
+
 
 }

@@ -91,7 +91,15 @@
   <script th:src="@{/webjars/AdminLTE/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js}"></script>
   <!-- AdminLTE App -->
   <script th:src="@{/webjars/AdminLTE/dist/js/adminlte.min.js}"></script>
-
+<script>
+  $(document).ready(function(){
+    setTimeout(function() {
+      $(".alert").fadeOut("slow", function(){
+        $(this).alert('close');
+      });
+    }, 5000);
+  });
+</script>
   <th:block th:replace="${scripts}"></th:block>
 </body>
 
