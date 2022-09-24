@@ -1,6 +1,7 @@
 package com.f3pro.ediaristas.web.controller;
 
 import com.f3pro.ediaristas.core.exceptions.ValidacaoException;
+import com.f3pro.ediaristas.web.dtos.AlterarSenhaForm;
 import com.f3pro.ediaristas.web.dtos.FlashMessage;
 import com.f3pro.ediaristas.web.dtos.UsuarioCadastroForm;
 import com.f3pro.ediaristas.web.dtos.UsuarioEdicaoForm;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @Controller
 @RequestMapping("/admin/usuarios")
@@ -43,6 +45,7 @@ public class UsuarioController {
         }
 
         try {
+
             service.cadastrar(cadastroForm);
             attrs.addFlashAttribute("alert", new FlashMessage("alert-success", "Usuário cadastrado com sucesso!"));
         } catch (ValidacaoException e) {
@@ -85,4 +88,26 @@ public class UsuarioController {
         return "redirect:/admin/usuarios";
     }
 
+    @GetMapping("/alterar-senha")
+    public ModelAndView alterarSenha() {
+        var modelAndView = new ModelAndView("admin/usuario/alterar-senha");
+        modelAndView.addObject("alterarSenhaForm", new AlterarSenhaForm());
+        return modelAndView;
+    }
+
+
+    @PostMapping("/alterar-senha")
+    public String alterarSenha(@Valid @ModelAttribute("alterarSenhaForm") AlterarSenhaForm alterarSenhaForm, BindingResult result, RedirectAttributes attrs, Principal principal) {
+        if (result.hasErrors()) {
+            return "admin/usuarios/alterar-senha";
+        }
+        try {
+            service.alterarSenha(alterarSenhaForm, principal.getName());
+            attrs.addFlashAttribute("alert", new FlashMessage("alert-success", "Senha Alterada com sucesso!"));
+        } catch (ValidacaoException e) {
+            result.addError(e.getFieldError());
+            return "admin/usuarios/alterar-senha";
+        }
+        return "redirect:/admin/usuarios/alterar-senha";
+    }
 }
