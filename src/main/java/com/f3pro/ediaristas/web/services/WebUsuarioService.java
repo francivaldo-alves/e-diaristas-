@@ -10,6 +10,7 @@ import com.f3pro.ediaristas.web.dtos.UsuarioCadastroForm;
 import com.f3pro.ediaristas.web.dtos.UsuarioEdicaoForm;
 import com.f3pro.ediaristas.web.mappers.WebUsuarioMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.FieldError;
 
@@ -23,6 +24,8 @@ public class WebUsuarioService {
 
     @Autowired
     private WebUsuarioMapper mapper;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<Usuario> buscarTodos() {
         return repository.findAll();
@@ -35,12 +38,14 @@ public class WebUsuarioService {
 
         if (!senha.equals(confirmacaoSenha)) {
             var mensagem = "Os dois campos de senhas não conferem";
-            var fieldError = new FieldError(form.getClass().getName(),
-                    "confirmacaoSenha", form.getConfirmacaoSenha(), false, null, null, mensagem);
+            var fieldError = new FieldError(form.getClass().getName(), "confirmacaoSenha", form.getConfirmacaoSenha(), false, null, null, mensagem);
             throw new SenhasNaoConferemException(mensagem, fieldError);
         }
 
         var model = mapper.toModel(form);
+        var senhaHash = passwordEncoder.encode(model.getSenha());
+        model.setSenha(senhaHash);
+
         model.setTipoUsuario(TipoUsuario.ADMIN);
         validarCampoUnico(model);
         return repository.save(model);
@@ -82,8 +87,7 @@ public class WebUsuarioService {
         repository.findByEmail(usuario.getEmail()).ifPresent((usuarioEncontrado) -> {
             if (!usuarioEncontrado.equals(usuario)) {
                 var mensagem = "Já existe um usuário cadastrado com esse e-mail";
-                var fieldError = new FieldError(usuario.getClass().getName(),
-                        "email", usuario.getEmail(), false, null, null, mensagem);
+                var fieldError = new FieldError(usuario.getClass().getName(), "email", usuario.getEmail(), false, null, null, mensagem);
                 throw new UsuarioJaCadastradoException(mensagem, fieldError);
 
             }
