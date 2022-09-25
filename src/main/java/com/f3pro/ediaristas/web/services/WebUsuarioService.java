@@ -10,6 +10,7 @@ import com.f3pro.ediaristas.core.repositories.UsuarioRepository;
 import com.f3pro.ediaristas.web.dtos.AlterarSenhaForm;
 import com.f3pro.ediaristas.web.dtos.UsuarioCadastroForm;
 import com.f3pro.ediaristas.web.dtos.UsuarioEdicaoForm;
+import com.f3pro.ediaristas.web.interfaces.IconfirmacaoSenha;
 import com.f3pro.ediaristas.web.mappers.WebUsuarioMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,14 +36,7 @@ public class WebUsuarioService {
 
     public Usuario cadastrar(UsuarioCadastroForm form) {
 
-        var senha = form.getSenha();
-        var confirmacaoSenha = form.getConfirmacaoSenha();
-
-        if (!senha.equals(confirmacaoSenha)) {
-            var mensagem = "Os dois campos de senhas não conferem";
-            var fieldError = new FieldError(form.getClass().getName(), "confirmacaoSenha", form.getConfirmacaoSenha(), false, null, null, mensagem);
-            throw new SenhasNaoConferemException(mensagem, fieldError);
-        }
+        ValidarConfirmacaoSenha(form);
 
         var model = mapper.toModel(form);
         var senhaHash = passwordEncoder.encode(model.getSenha());
@@ -96,18 +90,13 @@ public class WebUsuarioService {
     }
 
     public void alterarSenha(AlterarSenhaForm form, String email) {
+        ValidarConfirmacaoSenha(form);
 
         var usuario = buscarPorEmail(email);
         var senhaAtual = usuario.getSenha();
         var senhaAntiga = form.getSenhaAntiga();
         var senha = form.getSenha();
-        var confirmacaoSenha = form.getConfirmacaoSenha();
 
-        if (!senha.equals(confirmacaoSenha)) {
-            var mensagem = "Os dois campos de senhas não conferem";
-            var fieldError = new FieldError(form.getClass().getName(), "confirmacaoSenha", form.getConfirmacaoSenha(), false, null, null, mensagem);
-            throw new SenhasNaoConferemException(mensagem, fieldError);
-        }
         if (!passwordEncoder.matches(senhaAntiga, senhaAtual)) {
             var mensagem = "A senha antiga está incorreta";
             var fieldError = new FieldError(form.getClass().getName(), "senhaAntiga", form.getSenhaAntiga(), false, null, null, mensagem);
@@ -122,6 +111,18 @@ public class WebUsuarioService {
 
     }
 
+    //validar senha
+    private void ValidarConfirmacaoSenha(IconfirmacaoSenha obj) {
+
+        var senha = obj.getSenha();
+        var confirmacaoSenha = obj.getConfirmacaoSenha();
+
+        if (!senha.equals(confirmacaoSenha)) {
+            var mensagem = "Os dois campos de senhas não conferem";
+            var fieldError = new FieldError(obj.getClass().getName(), "confirmacaoSenha", obj.getConfirmacaoSenha(), false, null, null, mensagem);
+            throw new SenhasNaoConferemException(mensagem, fieldError);
+        }
+    }
 
     private void validarCampoUnico(Usuario usuario) {
         repository.findByEmail(usuario.getEmail()).ifPresent((usuarioEncontrado) -> {

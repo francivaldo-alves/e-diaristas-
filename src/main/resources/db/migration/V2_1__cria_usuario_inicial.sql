@@ -1,0 +1,1 @@
+INSERT INTO ediaristas.usuario (id, email, nome_completo, senha, tipo_usuario) VALUES (1, 'admin@mail.com', 'Usuario Admin', '$2a$10$pjVioebMjzLhRGVq.b0sUuTYKT.jq4WkrC0oonWDtcTpnO1nw.bku', 'ADMIN');

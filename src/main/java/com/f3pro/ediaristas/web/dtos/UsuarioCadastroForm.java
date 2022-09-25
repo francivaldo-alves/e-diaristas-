@@ -1,5 +1,6 @@
 package com.f3pro.ediaristas.web.dtos;
 
+import com.f3pro.ediaristas.web.interfaces.IconfirmacaoSenha;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import javax.validation.constraints.Size;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UsuarioCadastroForm {
+public class UsuarioCadastroForm implements IconfirmacaoSenha {
 
     @NotNull
     @Size(min = 3, max = 255)
